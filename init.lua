@@ -163,9 +163,16 @@ require('lazy').setup({
     'navarasu/onedark.nvim',
     priority = 1001,
     config = function()
-    vim.cmd.colorscheme 'onedark'
+     vim.cmd.colorscheme 'onedark'
     end,
    },
+  {
+    'lunarvim/lunar.nvim',
+    priority = 999,
+    config = function()
+      vim.cmd.colorscheme 'lunar'
+    end,
+  },
   {
     "Mofiqul/vscode.nvim",
     priority = 1000,
@@ -241,42 +248,52 @@ require('lazy').setup({
     end
   },
 
-  {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v3.x",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-      "MunifTanjim/nui.nvim",
-    },
-    opts = {filtered_items = { visible = true}},
-    config = function()
-      require("neo-tree").setup({
-        filtered_items = {
-          visible = true,
-          hide_dotfiles = false,
-          hide_gitignored = false,
-        },
-      })
-    end,
-  },
-
-  -- { 'nvim-tree/nvim-tree.lua', opts = {},
+  -- {
+  --   "nvim-neo-tree/neo-tree.nvim",
+  --   branch = "v3.x",
+  --   dependencies = {
+  --     "nvim-lua/plenary.nvim",
+  --     "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+  --     "MunifTanjim/nui.nvim",
+  --   },
+  --   opts = {filtered_items = { visible = true}},
   --   config = function()
-  --     require("nvim-tree").setup({git = { ignore = false}})
-  --   end
+  --     require("neo-tree").setup({
+  --       view = { side = 'left', width = 30},
+  --       filtered_items = {
+  --         visible = true,
+  --         hide_dotfiles = false,
+  --         hide_gitignored = false,
+  --       },
+  --     })
+  --   end,
   -- },
+
+  { 'nvim-tree/nvim-tree.lua', opts = {},
+    config = function()
+      require("nvim-tree").setup({git = { ignore = false}})
+    end
+  },
 
   { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}},
 
-  { 'andymass/vim-matchup', event = 'CursorMoved',
+  {
+    'itchyny/vim-cursorword',
+    event = {'BufEnter', 'BufNewFile'},
     config = function()
-      vim.g.matchup_matchparen_offscreen = { method = 'popup'}
-    end,
+      vim.api.nvim_command('augroup user_plugin_cursorword')
+      vim.api.nvim_command("augroup user_plugin_cursorword")
+      vim.api.nvim_command("autocmd!")
+      vim.api.nvim_command("autocmd FileType NvimTree,lspsagafinder,dashboard,vista let b:cursorword = 0")
+      vim.api.nvim_command("autocmd WinEnter * if &diff || &pvw | let b:cursorword = 0 | endif")
+      vim.api.nvim_command("autocmd InsertEnter * let b:cursorword = 0")
+      vim.api.nvim_command("autocmd InsertLeave * let b:cursorword = 1")
+      vim.api.nvim_command("augroup END")
+    end
   },
 
   {
-    'akinsho/bufferline.nvim', version = "*", dependencies = 'nvim-tree/nvim-web-devicons',
+    'akinsho/bufferline.nvim', dependencies = 'nvim-tree/nvim-web-devicons',
     opts = {},
     config = function()
       require("bufferline").setup({
@@ -427,6 +444,7 @@ vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { de
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]resume' })
 
 -- ------------------------- MMM keymaps -------------------------------------
+-- General mappings
 vim.keymap.set('n', '<leader>q', ':q<cr>',                    { silent = true, desc = 'Quit' })
 vim.keymap.set('n', '<C-s>', ':w<cr>',                        { silent = true, desc = 'Save' })
 vim.keymap.set('n', '<leader>w', ':w<cr>',                    { silent = true, desc = 'Save' })
@@ -434,22 +452,28 @@ vim.keymap.set('n', '<leader>w', ':w<cr>',                    { silent = true, d
 -- Split windows
 vim.keymap.set('n', '-', ':split<cr>',                        { silent = true, desc = 'Horizontal Split' })
 vim.keymap.set('n', '|', ':vsplit<cr>',                       { silent = true, desc = 'Vertical Split' })
-vim.keymap.set('n', '<leader>sc', require('telescope.builtin').colorscheme, { silent = true, desc = '[S]earch [C]olor'})
 vim.keymap.set('n', '<leader>h', ':noh<cr>',                  { silent = true, desc = 'No Highlight'})
--- vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<cr>',       { silent = true, desc = 'Open Explorer' })
-vim.keymap.set('n', '<leader>e', ':Neotree toggle<cr>',       { silent = true, desc = 'Open Explorer' })
+vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<cr>',       { silent = true, desc = 'Open Explorer' })
+-- vim.keymap.set('n', '<leader>e', ':Neotree toggle<cr>',       { silent = true, desc = 'Open Explorer' })
 
 -- Move buffers
-vim.keymap.set('n', '<leader>bn', ':bnext<cr>',               { silent = true, desc = 'Next buffer'})
-vim.keymap.set('n', '<leader>bb', ':bprevious<cr>',           { silent = true, desc = 'Back buffer'})
-vim.keymap.set('n', '<leader>bc', ':bd<cr>',                  { silent = true, desc = 'Close buffer' })
-vim.keymap.set('n', '<leader>bj', ':buffer ',                 { silent = true, desc = 'Jump buffer'})
+vim.keymap.set('n', '<leader>bn', ':bnext<cr>',               { silent = true, desc = 'Next'})
+vim.keymap.set('n', '<leader>bb', ':bprevious<cr>',           { silent = true, desc = 'Back'})
+vim.keymap.set('n', '<leader>c',  ':bd<cr>',                  { silent = true, desc = 'Close buffer'})
+vim.keymap.set('n', '<leader>bj', ':buffer ',                 { silent = true, desc = 'Jump to'})
 
 -- Move windows
+-- vim.keymap.set('n', '<C-j>', ':wincmd j<CR>',                 { silent = true, desc = 'Move window down'})
 vim.keymap.set('n', '<C-j>', ':wincmd j<CR>',                 { silent = true, desc = 'Move window down'})
 vim.keymap.set('n', '<C-h>', ':wincmd h<CR>',                 { silent = true, desc = 'Move window left'})
 vim.keymap.set('n', '<C-k>', ':wincmd k<CR>',                 { silent = true, desc = 'Move window up'})
 vim.keymap.set('n', '<C-l>', ':wincmd l<CR>',                 { silent = true, desc = 'Move window right'})
+
+-- Resize windows
+vim.keymap.set('n', '<C-Down>',   '<C-w>-',                 { silent = true, desc = 'Decrease window height'})
+vim.keymap.set('n', '<C-Up>',     '<C-w>+',                 { silent = true, desc = 'Increase window height'})
+vim.keymap.set('n', '<C-Left>',   '<C-w><',                 { silent = true, desc = 'Decrease window width'})
+vim.keymap.set('n', '<C-Right>',  '<C-w>>',                 { silent = true, desc = 'Increase window width'})
 
 -- Hmake specific keymaps
 vim.keymap.set('n', '<leader>Ha', ':! hmake all<cr>',         { silent = true, desc = 'hmake all'})
@@ -466,13 +490,27 @@ vim.keymap.set('n', '<leader>Co', ':CMakeOpen<cr>',              { silent = true
 vim.keymap.set('n', '<leader>Ci', ':CMakeInstall<cr>',           { silent = true, desc = 'Install'})
 vim.keymap.set('n', '<leader>Cs', ':CMakeSelectBuildType<cr>',   { silent = true, desc = 'Select build'})
 
+-- Helpful keymaps
+vim.keymap.set('n', '<leader>sc', require('telescope.builtin').colorscheme, { silent = true, desc = '[S]earch [C]olor'})
+
 -- MMM Set group names for keymaps
 local wk = require("which-key")
 wk.register({
-  ["<leader>l"] = { name = 'LSP',
-    w = { name = 'Workspace'}
+  ['<leader>'] = {
+    l = {
+      name = 'LSP',
+      w = {
+        name = 'Workspace',
+        s = {'<cmd>telescope.builtin.lsp_dynamic_workspace_symbols', '[W]orkspace [S]ymbols'},
+        a = {'vim.lsp.buf.add_workspace_folder', '[W]orkspace [A]dd Folder'},
+        r = {'vim.lsp.buf.remove_workspace_folder', '[W]orkspace [R]emove Folder'},
+      },
+      d = {
+        name = "Document",
+        s = {'telescope.builtin.lsp_document_symbols', '[D]ocument [S]ymbols'},
+      }
+    }
   },
-  ['<leader>lw'] = { name = 'Workspace'},
   ['<leader>b'] = { name = 'Buffer' },
   ['<leader>s'] = { name = 'Search' },
   ['<leader>g'] = { name = 'Git' },
@@ -581,7 +619,7 @@ local on_attach = function(_, bufnr)
   nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
   nmap('<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition')
   nmap('<leader>lds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-  nmap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+  -- nmap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
@@ -589,11 +627,11 @@ local on_attach = function(_, bufnr)
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-  nmap('<leader>lwa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
-  nmap('<leader>lwr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
-  nmap('<leader>lwl', function()
-    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-  end, '[W]orkspace [L]ist Folders')
+  -- nmap('<leader>lwa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
+  -- nmap('<leader>lwr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
+  -- nmap('<leader>lwl', function()
+  --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  -- end, '[W]orkspace [L]ist Folders')
 
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
@@ -661,6 +699,12 @@ cmp.setup {
     expand = function(args)
       luasnip.lsp_expand(args.body)
     end,
+  },
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+-- scrollbar = cmp-config.window.completion.scrollbar()
+    -- scrollbar = cmp.window.completion.scrollbar()
   },
   mapping = cmp.mapping.preset.insert {
     ['<C-n>'] = cmp.mapping.select_next_item(),
