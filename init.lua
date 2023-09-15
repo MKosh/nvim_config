@@ -59,12 +59,7 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- NOTE: Here is where you install your plugins.
---  You can configure plugins using the `config` key.
---
---  You can also configure plugins after the setup call,
---    as they will be available in your neovim runtime.
---    ------------------------------- PLUGINS -------------------------------------------
+-- ------------------------------- PLUGINS BEGIN -------------------------------
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
 
@@ -77,11 +72,11 @@ require('lazy').setup({
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
+  --  MMM: I need to reorganize the plugins
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs to stdpath for neovim
       { 'williamboman/mason.nvim', config = true },
       'williamboman/mason-lspconfig.nvim',
 
@@ -116,9 +111,6 @@ require('lazy').setup({
       window = {
         border = "double",
       },
-      defaults = {
-        ["l"] = { name = "+LSP" },
-      }
     }
   },
   {
@@ -140,7 +132,7 @@ require('lazy').setup({
         untracked    = { text = '┆' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
+        vim.keymap.set('n', '<leader>gp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
@@ -161,31 +153,87 @@ require('lazy').setup({
   {
     -- Theme inspired by Atom
     'navarasu/onedark.nvim',
-    priority = 1001,
+    priority = 1000,
     config = function()
      vim.cmd.colorscheme 'onedark'
     end,
    },
   {
     'lunarvim/lunar.nvim',
-    priority = 999,
+    priority = 1002,
     config = function()
       vim.cmd.colorscheme 'lunar'
     end,
   },
   {
     "Mofiqul/vscode.nvim",
-    priority = 1000,
+    priority = 1001,
     config  = function()
       vim.cmd.colorscheme 'vscode'
     end,
   },
 
+-- ------------------- NAVIC ---------------------------------------------------
+-- Winbar code breadcrumbs
+  {
+    'SmiteshP/nvim-navic',
+    opts = {},
+    config = function()
+      local navic = require('nvim-navic').setup({
+        icons_enabled = true,
+        icons = {
+          File          = "󰈙 ",
+          Module        = " ",
+          Namespace     = "▤ ",
+          Package       = " ",
+          Class         = "󰌗 ",
+          Method        = "󰆧 ",
+          Property      = " ",
+          Field         = " ",
+          Constructor   = " ",
+          Enum          = "󰕘",
+          Interface     = "󰕘",
+          Function      = "󰊕 ",
+          Variable      = "󰆧 ",
+          Constant      = "󰏿 ",
+          String        = "󰀬 ",
+          Number        = "󰎠 ",
+          Boolean       = "◩ ",
+          Array         = "󰅪 ",
+          Object        = "󰅩 ",
+          Key           = "󰌋 ",
+          Null          = "󰟢 ",
+          EnumMember    = " ",
+          Struct        = "󰌗 ",
+          Event         = " ",
+          Operator      = "󰆕 ",
+          TypeParameter = "󰊄 ",
+        },
+        lsp = {
+          auto_attach = true,
+          preference = nil,
+        },
+        highlight = false,
+        separator = " → ",
+        depth_limit = 0,
+        depth_limit_indicator = "..",
+        safe_output = true,
+        lazy_update_context = false,
+        click = false,
+      })
+    end
+  },
+
+-- -------------- Lualine ------------------------------------------------------
+-- Bottom status line and top winbar line
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
     -- See `:help lualine.txt`
     opts = {
+      winbar = {
+        lualine_b = {'filename'},
+      },
       options = {
         icons_enabled = true, -- MMM
         -- theme = 'onedark',
@@ -196,6 +244,8 @@ require('lazy').setup({
     },
   },
 
+-- ------------------------ Indent Blankline -----------------------------------
+-- Highlight indents including blank lines 
   {
     -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
@@ -203,14 +253,31 @@ require('lazy').setup({
     -- See `:help indent_blankline.txt`
     opts = {
       char = '┊',
+      -- char = '▏',
+      -- char = '│',
       show_trailing_blankline_indent = false,
+      space_char_blankline = " ",
+      show_current_context = true,
+      show_current_context_start = true,
     },
+    config = function()
+      require('indent_blankline').setup({
+        show_trailing_blankline_indent = false,
+        char = '┊',
+        context_char = "▏",
+        space_char_blankline = " ",
+        show_current_context = true,
+        show_current_context_start = true
+      })
+    end
   },
 
-  -- "gc" to comment visual regions/lines
+-- ------------------------- Comment -------------------------------------------
+-- Comment by line or block
   { 'numToStr/Comment.nvim', opts = {} },
 
-  -- Fuzzy Finder (files, lsp, etc)
+-- ------------------------- Telescope -----------------------------------------
+-- Fuzzy Finder (files, lsp, etc)
   {
     'nvim-telescope/telescope.nvim',
     branch = '0.1.x',
@@ -231,52 +298,53 @@ require('lazy').setup({
     },
   },
 
+-- -------------------------- Treesitter ---------------------------------------
+-- Highlight, edit, and navigate code
   {
-    -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
     build = ':TSUpdate',
   },
-  -- MMM Additions
+
+-- -------------------------- Alpha --------------------------------------------
+-- Splash screen/startup window
   {
-    'startup-nvim/startup.nvim',
-    requires = {'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim'},
+    'goolord//alpha-nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      require("startup").setup()
+      require'alpha'.setup(require'alpha.themes.theta'.config)
     end
   },
 
-  -- {
-  --   "nvim-neo-tree/neo-tree.nvim",
-  --   branch = "v3.x",
-  --   dependencies = {
-  --     "nvim-lua/plenary.nvim",
-  --     "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-  --     "MunifTanjim/nui.nvim",
-  --   },
-  --   opts = {filtered_items = { visible = true}},
-  --   config = function()
-  --     require("neo-tree").setup({
-  --       view = { side = 'left', width = 30},
-  --       filtered_items = {
-  --         visible = true,
-  --         hide_dotfiles = false,
-  --         hide_gitignored = false,
-  --       },
-  --     })
-  --   end,
-  -- },
+-- ------------------------- Nvim Tree -----------------------------------------
+-- File browser on the side 
 
   { 'nvim-tree/nvim-tree.lua', opts = {},
     config = function()
-      require("nvim-tree").setup({git = { ignore = false}})
+      require("nvim-tree").setup({
+        git = { ignore = false},
+        update_focused_file = { enable = true, update_root = true},
+        renderer = {root_folder_label = ':t'},
+        -- update_focused_file.update_root = true,
+      })
     end
   },
 
+-- --------------------- Telescope: File Browser -------------------------------
+-- Fast floating file browser
+  {
+    'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim'}
+  },
+
+-- -------------------- Nvim Autopairs -----------------------------------------
+-- Create brackets and quotes in pairs
   { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}},
 
+-- -------------------- Vim Cursorword -----------------------------------------
+-- Underline the current word and other instances of it 
   {
     'itchyny/vim-cursorword',
     event = {'BufEnter', 'BufNewFile'},
@@ -292,13 +360,25 @@ require('lazy').setup({
     end
   },
 
+-- ------------------------ Bufferline ---------------------------------------
+-- Bufferline tabs and jumping between buffers
   {
     'akinsho/bufferline.nvim', dependencies = 'nvim-tree/nvim-web-devicons',
     opts = {},
     config = function()
       require("bufferline").setup({
         options = {
-          mode = 'buffer',
+          diagnostics = 'nvim_lsp',
+          offsets = {
+            {
+              filetype = "NvimTree",
+              text = "File Explorer",
+              text_align = "center",
+              separator = true
+            }
+          },
+          mode = "buffer",
+          separator_style = 'slant',
           numbers = function(opts)
             -- return string.format('%s·%s', opts.raise(opts.id), opts.lower(opts.ordinal))
             return string.format('%s·%s', opts.raise(opts.id), opts.lower(opts.ordinal))
@@ -308,16 +388,28 @@ require('lazy').setup({
     end,
   },
 
+-- ---------------------- Treesitter: Context ----------------------------------
+-- Keep function/class signatures at the top of the buffer
   {
     'nvim-treesitter/nvim-treesitter-context', opts = {},
   },
 
+-- ---------------------- Cmake Tools ------------------------------------------
+-- Run cmake commands from within neovim
   {
     'Civitasv/cmake-tools.nvim', opts = {},
   },
 
+-- ----------------------- ToggleTerm ------------------------------------------
+-- Easily open terminals in neovim
+  {
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    config = true
+  },
 
---    ------------------------------- PLUGINS END -------------------------------------------
+}, {})
+-- ------------------------------- PLUGINS END ---------------------------------
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -332,13 +424,23 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
-}, {})
 
--- [[ Setting options ]]
--- See `:help vim.o`
--- NOTE: You can change these options as you wish!
+-- -----------------------------------------------------------------------------
+-- Let lualine winbar interface with navic
+local navic = require("nvim-navic")
 
--- MMM General settings
+require("lualine").setup({
+  winbar = {
+    lualine_c = {
+      {
+        "navic"
+      }
+    }
+  }
+})
+
+-- -------------------------- vim settings -------------------------------------
+-- General settings
 vim.o.foldmethod = "expr"
 vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.o.foldenable = false
@@ -347,10 +449,9 @@ vim.o.colorcolumn = '80'
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
 vim.o.expandtab = true
--- MMM General settings
 
 -- Set highlight on search
-vim.o.hlsearch = true -- MMM 
+vim.o.hlsearch = true  
 
 -- Make line numbers default
 vim.wo.number = true
@@ -360,8 +461,6 @@ vim.wo.relativenumber = true -- MMM
 vim.o.mouse = 'a'
 
 -- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
 vim.o.clipboard = 'unnamedplus'
 
 -- Enable break indent
@@ -386,6 +485,8 @@ vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
+
+-- ------------------------- End Vim Settings ----------------------------------
 
 -- [[ Basic Keymaps ]]
 
@@ -443,45 +544,73 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]resume' })
 
--- ------------------------- MMM keymaps -------------------------------------
--- General mappings
-vim.keymap.set('n', '<leader>q', ':q<cr>',                    { silent = true, desc = 'Quit' })
-vim.keymap.set('n', '<C-s>', ':w<cr>',                        { silent = true, desc = 'Save' })
-vim.keymap.set('n', '<leader>w', ':w<cr>',                    { silent = true, desc = 'Save' })
+-- ----------------------------- My Keymaps ------------------------------------
+-- General mappings ------------------------------------------------------------
+vim.keymap.set('n', '<leader>q', ':q<cr>',                { silent = true, desc = 'Quit' })
+vim.keymap.set('n', '<C-s>', ':w<cr>',                    { silent = true, desc = 'Save' })
+vim.keymap.set('n', '<leader>w', ':w<cr>',                { silent = true, desc = 'Save' })
+vim.keymap.set('n', '<leader>;', ':Alpha<cr>',            { silent = true, desc = 'Dashboard'})
+vim.keymap.set('n', '<leader>h', ':noh<cr>',              { silent = true, desc = 'No Highlight'})
 
--- Split windows
-vim.keymap.set('n', '-', ':split<cr>',                        { silent = true, desc = 'Horizontal Split' })
-vim.keymap.set('n', '|', ':vsplit<cr>',                       { silent = true, desc = 'Vertical Split' })
-vim.keymap.set('n', '<leader>h', ':noh<cr>',                  { silent = true, desc = 'No Highlight'})
-vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<cr>',       { silent = true, desc = 'Open Explorer' })
--- vim.keymap.set('n', '<leader>e', ':Neotree toggle<cr>',       { silent = true, desc = 'Open Explorer' })
+-- Split windows ---------------------------------------------------------------
+vim.keymap.set('n', '-', ':split<cr>',                    { silent = true, desc = 'Horizontal Split' })
+vim.keymap.set('n', '|', ':vsplit<cr>',                   { silent = true, desc = 'Vertical Split' })
 
--- Move buffers
-vim.keymap.set('n', '<leader>bn', ':bnext<cr>',               { silent = true, desc = 'Next'})
-vim.keymap.set('n', '<leader>bb', ':bprevious<cr>',           { silent = true, desc = 'Back'})
-vim.keymap.set('n', '<leader>c',  ':bd<cr>',                  { silent = true, desc = 'Close buffer'})
-vim.keymap.set('n', '<leader>bj', ':buffer ',                 { silent = true, desc = 'Jump to'})
+-- File browsers ---------------------------------------------------------------
+vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<cr>',   { silent = true, desc = 'Open File Explorer' })
+require('telescope').load_extension('file_browser')
+vim.api.nvim_set_keymap('n', '<leader>fb', ':Telescope file_browser<cr>', { noremap = true, silent = true, desc = 'Open File Browser'})
 
--- Move windows
--- vim.keymap.set('n', '<C-j>', ':wincmd j<CR>',                 { silent = true, desc = 'Move window down'})
-vim.keymap.set('n', '<C-j>', ':wincmd j<CR>',                 { silent = true, desc = 'Move window down'})
-vim.keymap.set('n', '<C-h>', ':wincmd h<CR>',                 { silent = true, desc = 'Move window left'})
-vim.keymap.set('n', '<C-k>', ':wincmd k<CR>',                 { silent = true, desc = 'Move window up'})
-vim.keymap.set('n', '<C-l>', ':wincmd l<CR>',                 { silent = true, desc = 'Move window right'})
+-- Moving buffers --------------------------------------------------------------
+vim.keymap.set('n', '<leader>bn', ':bnext<cr>',           { silent = true, desc = 'Next'})
+vim.keymap.set('n', '<leader>bb', ':bprevious<cr>',       { silent = true, desc = 'Back'})
+vim.keymap.set('n', '<leader>c',  ':bd<cr>',              { silent = true, desc = 'Close buffer'})
+vim.keymap.set('n', '<leader>bj', ':BufferLinePick<cr>',  { silent = true, desc = 'Jump to'})
 
--- Resize windows
-vim.keymap.set('n', '<C-Down>',   '<C-w>-',                 { silent = true, desc = 'Decrease window height'})
-vim.keymap.set('n', '<C-Up>',     '<C-w>+',                 { silent = true, desc = 'Increase window height'})
-vim.keymap.set('n', '<C-Left>',   '<C-w><',                 { silent = true, desc = 'Decrease window width'})
-vim.keymap.set('n', '<C-Right>',  '<C-w>>',                 { silent = true, desc = 'Increase window width'})
+-- Moving windows --------------------------------------------------------------
+vim.keymap.set('n', '<C-j>', ':wincmd j<CR>',             { silent = true, desc = 'Move window down'})
+vim.keymap.set('n', '<C-h>', ':wincmd h<CR>',             { silent = true, desc = 'Move window left'})
+vim.keymap.set('n', '<C-k>', ':wincmd k<CR>',             { silent = true, desc = 'Move window up'})
+vim.keymap.set('n', '<C-l>', ':wincmd l<CR>',             { silent = true, desc = 'Move window right'})
 
--- Hmake specific keymaps
-vim.keymap.set('n', '<leader>Ha', ':! hmake all<cr>',         { silent = true, desc = 'hmake all'})
-vim.keymap.set('n', '<leader>Hi', ':! hmake install<cr>',     { silent = true, desc = 'hmake install'})
+-- ToggleTerm keymaps ----------------------------------------------------------
+vim.keymap.set('n', '<M-1>', ':ToggleTerm size=10 direction=horizontal<cr>',  { silent = true, desc = 'Open horizontal terminal'})
+vim.keymap.set('n', '<M-2>', ':ToggleTerm size=80 direction=vertical<cr>',    { silent = true, desc = 'Open vertical terminal'})
+vim.keymap.set('n', '<M-3>', ':ToggleTerm size=30 direction=float<cr>',       { silent = true, desc = 'Open floating terminal'})
+
+function _G.set_terminal_keymaps()
+  local opts = {buffer = 0}
+  vim.keymap.set('t', '<esc>', [[<C-\><C-n>]],            { silent = true, desc = 'Exit terminal'})
+  vim.keymap.set('t', 'jk',    [[<C-\><C-n>]],            { silent = true, desc = 'Exit terminal'})
+  vim.keymap.set('t', '<C-j>', [[<cmd>wincmd j<CR>]],     { silent = true, desc = 'Move window down'})
+  vim.keymap.set('t', '<C-h>', [[<cmd>wincmd h<CR>]],     { silent = true, desc = 'Move window left'})
+  vim.keymap.set('t', '<C-k>', [[<cmd>wincmd k<CR>]],     { silent = true, desc = 'Move window up'})
+  vim.keymap.set('t', '<C-l>', [[<cmd>wincmd l<CR>]],     { silent = true, desc = 'Move window right'})
+  vim.keymap.set('t', '<M-1>', [[<cmd>ToggleTerm<cr>]],   { silent = true, desc = 'Open horizontal terminal'})
+  vim.keymap.set('t', '<M-2>', [[<cmd>ToggleTerm<cr>]],   { silent = true, desc = 'Open vertical terminal'})
+  vim.keymap.set('t', '<M-3>', [[<cmd>ToggleTerm<cr>]],   { silent = true, desc = 'Open floating terminal'})
+end
+
+vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
+
+-- Resize windows --------------------------------------------------------------
+vim.keymap.set('n', '<C-Down>',   '<C-w>-',               { silent = true, desc = 'Decrease window height'})
+vim.keymap.set('n', '<C-Up>',     '<C-w>+',               { silent = true, desc = 'Increase window height'})
+vim.keymap.set('n', '<C-Left>',   '<C-w><',               { silent = true, desc = 'Decrease window width'})
+vim.keymap.set('n', '<C-Right>',  '<C-w>>',               { silent = true, desc = 'Increase window width'})
+
+vim.keymap.set('n', '<M-Down>',   '<C-w>-',               { silent = true, desc = 'Decrease window height'})
+vim.keymap.set('n', '<M-Up>',     '<C-w>+',               { silent = true, desc = 'Increase window height'})
+vim.keymap.set('n', '<M-Left>',   '<C-w><',               { silent = true, desc = 'Decrease window width'})
+vim.keymap.set('n', '<M-Right>',  '<C-w>>',               { silent = true, desc = 'Increase window width'})
+
+-- Hmake specific keymaps ------------------------------------------------------
+vim.keymap.set('n', '<leader>Ha', ':! hmake all<cr>',            { silent = true, desc = 'hmake all'})
+vim.keymap.set('n', '<leader>Hi', ':! hmake install<cr>',        { silent = true, desc = 'hmake install'})
 vim.keymap.set('n', '<leader>Hh', ':silent :! hmake all && hmake install<cr>', { silent = true, desc = 'hmake all & install (silent)'})
-vim.keymap.set('n', '<leader>Hl', ':! hmake all && hmake install<cr>',          { silent = true, desc = 'hmake all & install'})
+vim.keymap.set('n', '<leader>Hl', ':! hmake all && hmake install<cr>',         { silent = true, desc = 'hmake all & install'})
 
--- Cmake specific keymaps
+-- Cmake specific keymaps ------------------------------------------------------
 vim.keymap.set('n', '<leader>Cg', ':CMakeGenerate<cr>',          { silent = true, desc = 'Generate'})
 vim.keymap.set('n', '<leader>Cr', ':CMakeGenerate Release<cr>',  { silent = true, desc = 'Generate Release'})
 vim.keymap.set('n', '<leader>Cd', ':CMakeGenerate Debug<cr>',    { silent = true, desc = 'Generate Debug'})
@@ -490,10 +619,10 @@ vim.keymap.set('n', '<leader>Co', ':CMakeOpen<cr>',              { silent = true
 vim.keymap.set('n', '<leader>Ci', ':CMakeInstall<cr>',           { silent = true, desc = 'Install'})
 vim.keymap.set('n', '<leader>Cs', ':CMakeSelectBuildType<cr>',   { silent = true, desc = 'Select build'})
 
--- Helpful keymaps
+-- Helpful keymaps -------------------------------------------------------------
 vim.keymap.set('n', '<leader>sc', require('telescope.builtin').colorscheme, { silent = true, desc = '[S]earch [C]olor'})
 
--- MMM Set group names for keymaps
+-- Set group names for keymaps -------------------------------------------------
 local wk = require("which-key")
 wk.register({
   ['<leader>'] = {
@@ -511,6 +640,7 @@ wk.register({
       }
     }
   },
+  ['<leader>f'] = { name = 'File' },
   ['<leader>b'] = { name = 'Buffer' },
   ['<leader>s'] = { name = 'Search' },
   ['<leader>g'] = { name = 'Git' },
@@ -518,7 +648,7 @@ wk.register({
   ['<leader>C'] = { name = 'cmake'}
 })
 
--- ------------------------- MMM keymaps -------------------------------------
+-- ------------------------- End My Keymaps -------------------------------------
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -593,6 +723,7 @@ vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, { desc = 'Open floa
 vim.keymap.set('n', '<leader>ld', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 -- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
+
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -637,8 +768,15 @@ local on_attach = function(_, bufnr)
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
+  
+  -- if _.server_capabilities.documentsSymbolProvider then
+  --   _.attach(_, bufnr)
+  -- end
 end
 
+-- require('lspconfig').clangd.setup {
+--   on_attach = on_attach
+-- }
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
 --
