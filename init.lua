@@ -1,3 +1,4 @@
+
 --[[
 
 =====================================================================
@@ -102,8 +103,21 @@ require('lazy').setup({
 
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
+
+      'hrsh7th/cmp-path',
     },
   },
+
+  -- {
+  --   'hrsh7th/cmp-path', opts = {},
+  --   config = function()
+  --     require('cmp').setup({
+  --       sources = {
+  --         { name = 'path'}
+  --       }
+  --     })
+  --   end
+  -- },
 
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim',
@@ -153,14 +167,14 @@ require('lazy').setup({
   {
     -- Theme inspired by Atom
     'navarasu/onedark.nvim',
-    priority = 1000,
+    priority = 1002,
     config = function()
      vim.cmd.colorscheme 'onedark'
     end,
    },
   {
     'lunarvim/lunar.nvim',
-    priority = 1002,
+    priority = 1003,
     config = function()
       vim.cmd.colorscheme 'lunar'
     end,
@@ -408,6 +422,27 @@ require('lazy').setup({
     config = true
   },
 
+-- {
+--   'mfussenegger/nvim-dap',
+--   config = function()
+--     require('dap').setup({
+--       dap.adapters.codelldb = {
+--         type = 'server',
+--         host = '127.0.0.1',
+--         port = 13000
+--       }
+--     })
+--   end
+-- },
+
+  {
+    'rcarriga/nvim-dap-ui',
+    dependencies = {
+      'mfussenegger/nvim-dap'
+    },
+    opts = {}
+  },
+
 }, {})
 -- ------------------------------- PLUGINS END ---------------------------------
 
@@ -438,6 +473,34 @@ require("lualine").setup({
     }
   }
 })
+
+-- local dap = require('dap')
+-- dap.adapters.codelldb = {
+--  type = 'server',
+--  host = '127.0.0.1',
+--  port = 13000
+-- 
+-- dap.configurations.cpp = {
+--  {
+--    type = 'codelldb',
+--    request = 'launch',
+--    program = function()
+--      return vim.fn.input('Path to executable: ', vim.fn.getcwd()..'/', 'file')
+--    end,
+--    --program = '${fileDirname}/${fileBasenameNoExtension}',
+--    cwd = '${workspaceFolder}',
+--    terminal = 'integrated'
+--  }
+-- 
+-- dap.adapters.codelldb = {
+--   type = 'server',
+--   host = '${port}',
+--   executable = {
+--     command = '~/.local/share/nvim/mason/packages/codelldb/codelldb',
+--     args = {'--port', '${port}'},
+--   }
+-- }
+-- dap.setup()
 
 -- -------------------------- vim settings -------------------------------------
 -- General settings
@@ -887,6 +950,7 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = 'path' },
   },
 }
 
