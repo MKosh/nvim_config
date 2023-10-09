@@ -71,9 +71,6 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
-  -- NOTE: This is where your plugins related to LSP can be installed.
-  --  The configuration is done below. Search for lspconfig to find it below.
-  --  MMM: I need to reorganize the plugins
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -138,8 +135,8 @@ require('lazy').setup({
         -- delete = { text = '_' },
         -- topdelete = { text = '‾' },
         -- changedelete = { text = '~' },
-        add = { text = '|'},
-        change = { text = '|'},
+        add = { text = '│'},
+        change = { text = '│'},
         delete = { text = '_'},
         topdelete = { text = '‾'},
         changedelete = { text = '~'},
@@ -147,7 +144,7 @@ require('lazy').setup({
       },
       on_attach = function(bufnr)
         vim.keymap.set('n', '<leader>gp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
-
+        vim.keymap.set('n', '<leader>gb', require('gitsigns').toggle_current_line_blame, { silent = true, desc = 'Toggle blame' })
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
         vim.keymap.set({'n', 'v'}, ']c', function()
@@ -197,6 +194,7 @@ require('lazy').setup({
         icons_enabled = true,
         icons = {
           File          = "󰈙 ",
+          Folder        = "󰉋 ",
           Module        = " ",
           Namespace     = "▤ ",
           Package       = " ",
@@ -205,8 +203,8 @@ require('lazy').setup({
           Property      = " ",
           Field         = " ",
           Constructor   = " ",
-          Enum          = "󰕘",
-          Interface     = "󰕘",
+          Enum          = "󰕘 ",
+          Interface     = "󰕘 ",
           Function      = "󰊕 ",
           Variable      = "󰆧 ",
           Constant      = "󰏿 ",
@@ -242,20 +240,7 @@ require('lazy').setup({
 -- Bottom status line and top winbar line
   {
     -- Set lualine as statusline
-    'nvim-lualine/lualine.nvim',
-    -- See `:help lualine.txt`
-    opts = {
-      winbar = {
-        lualine_b = {'filename'},
-      },
-      options = {
-        icons_enabled = true, -- MMM
-        -- theme = 'onedark',
-        theme = 'auto',
-        component_separators = '|',
-        section_separators = '',
-      },
-    },
+    'nvim-lualine/lualine.nvim', opts = {},
   },
 
 -- ------------------------ Indent Blankline -----------------------------------
@@ -277,7 +262,8 @@ require('lazy').setup({
     config = function()
       require('indent_blankline').setup({
         show_trailing_blankline_indent = false,
-        char = '┊',
+        -- char = '┊',
+        char = '▏',
         context_char = "▏",
         space_char_blankline = " ",
         show_current_context = true,
@@ -310,6 +296,24 @@ require('lazy').setup({
         end,
       },
     },
+    -- config = function()
+    --   require('telescope').setup({
+    --     local project_actions = require('telescope._extensions.project.actions')
+    --     extensions = {
+    --       project = {
+    --         base_dirs = {
+    --           {'~/code', max_depth = 4}
+    --         },
+    --       },
+    --       order_by = 'asc',
+    --       search_by = "title",
+    --       sync_with_nvim_tree = true,
+    --       on_project_selected = function(prompt_bufnr)
+    --         project_actions.change_working_directory(prompt_bufnr, false)
+    --       end
+    --     }
+    --   })
+    -- end
   },
 
 -- -------------------------- Treesitter ---------------------------------------
@@ -325,10 +329,41 @@ require('lazy').setup({
 -- -------------------------- Alpha --------------------------------------------
 -- Splash screen/startup window
   {
-    'goolord//alpha-nvim',
+    'goolord/alpha-nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      require'alpha'.setup(require'alpha.themes.theta'.config)
+      require'alpha'.setup(require'alpha.themes.home'.config)
+    end
+  },
+
+-- ---------------------- Telescope Project ------------------------------------
+-- 
+  {
+    'nvim-telescope/telescope-project.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim' },
+  },
+
+  {
+    'ahmedkhalf/project.nvim',
+    config = function()
+      require("project_nvim").setup({
+        sync_root_with_cwd = true,
+        respect_buf_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_root = true
+        },
+        active = true,
+        manual_mode = false,
+        detection_methods = {'pattern'},
+        patterns = {'.git', '.Makefile'},
+        ignore_lsp = {},
+        exclude_dirs = {},
+        show_hidden = false,
+        silent_chdir = true,
+        scope_chdir = "global",
+        datapath = vim.fn.stdpath("data"),
+      })
     end
   },
 
@@ -383,6 +418,15 @@ require('lazy').setup({
       require("bufferline").setup({
         options = {
           diagnostics = 'nvim_lsp',
+          -- indicator = {
+          --   style = "underline",
+          -- },
+          -- custom_filter = function(buf_number)
+          --   -- if vim.bo[buf_number].filetype ~= "zsh;#toggleterm#1" then
+          --   if vim.fn.bufname(buf_number) ~= "toggleterm" then
+          --     return true
+          --   end
+          -- end,
           offsets = {
             {
               filetype = "NvimTree",
@@ -410,10 +454,17 @@ require('lazy').setup({
 
 -- ---------------------- Cmake Tools ------------------------------------------
 -- Run cmake commands from within neovim
-  {
-    'Civitasv/cmake-tools.nvim', opts = {},
-  },
-
+  -- {
+  --   'Civitasv/cmake-tools.nvim', opt = {},
+  --   config = function()
+  --     require('cmake-tools').setup({
+  --       -- cmake_build_directory = 'build/${variant:buildType}',
+  --     })
+  --   end
+  -- },
+  -- {
+  --   'Shatur/neovim-tasks'
+  -- },
 -- ----------------------- ToggleTerm ------------------------------------------
 -- Easily open terminals in neovim
   {
@@ -465,14 +516,56 @@ require('lazy').setup({
 local navic = require("nvim-navic")
 
 require("lualine").setup({
+  -- disabled_filetypes {
+  --   statusline = { 'NvimTree'},
+  --   winbar = { 'NvimTree' },
+  -- },
+  options = {
+    theme = "auto",
+    globalstatus = true,
+    disabled_filetypes = {'alpha', 'NvimTree', 'toggleterm'},
+    component_separators = '',
+    section_separators = '',
+  },
+  sections = {
+    lualine_a = { 'mode' },
+    lualine_b = { 'branch' },
+    lualine_c = { 'diff' },
+    lualine_x = {
+      'diagnostics',
+      'filetype'
+    },
+    lualine_y = { 'location', 'progress' },
+    lualine_z = { 'datetime'},
+  },
+  ignore_focus = {'NvimTree'},
   winbar = {
+    lualine_b = { {"filename"}},
     lualine_c = {
       {
         "navic"
       }
     }
-  }
+  },
+  inactive_winbar = {
+    lualine_b = { 'filename' },
+  },
 })
+
+-- -----------------------------------------------------------------------------
+-- require'telescope'.extensions.project.project{}
+
+-- local Path = require('plenary.path')
+-- require('tasks').setup({
+--   defualt_params = {
+--     cmake = {
+--       cmd = 'cmake',
+--       build_dir = tostring(Path:new('{cwd}', 'build', '{os}--{build_type}')),
+--       build_type = 'Debug',
+--       dap_name = 'lldb',
+--       args = {
+--         configure = {'-D', 'CMAKE_EXPORT_COMPILE_COMMANDS=1', '-G', 'make'},
+--       } })
 
 -- local dap = require('dap')
 -- dap.adapters.codelldb = {
@@ -514,7 +607,7 @@ vim.o.shiftwidth = 2
 vim.o.expandtab = true
 
 -- Set highlight on search
-vim.o.hlsearch = true  
+vim.o.hlsearch = true
 
 -- Make line numbers default
 vim.wo.number = true
@@ -574,6 +667,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
+local project_actions = require('telescope._extensions.project.actions')
 require('telescope').setup {
   defaults = {
     mappings = {
@@ -583,21 +677,36 @@ require('telescope').setup {
       },
     },
   },
+  extensions = {
+    project = {
+      base_dirs = {
+        {'~/code', max_depth = 4}
+      },
+    },
+    theme = "dropdown",
+    order_by = 'asc',
+    search_by = "title",
+    sync_with_nvim_tree = true,
+    on_project_selected = function(prompt_bufnr)
+      project_actions.change_working_directory(prompt_bufnr, false)
+    end
+  }
 }
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
+require'telescope'.load_extension('project')
 
 -- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = 'Find recently opened files' })
+vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = 'Find existing buffers' })
 vim.keymap.set('n', '<leader>/', function()
   -- You can pass additional configuration to telescope to change theme, layout, etc.
   require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
     winblend = 10,
     previewer = false,
   })
-end, { desc = '[/] Fuzzily search in current buffer' })
+end, { desc = 'Fuzzy search in current buffer' })
 
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
@@ -623,7 +732,9 @@ vim.keymap.set('n', '|', ':vsplit<cr>',                   { silent = true, desc 
 vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<cr>',   { silent = true, desc = 'Open File Explorer' })
 require('telescope').load_extension('file_browser')
 vim.api.nvim_set_keymap('n', '<leader>fb', ':Telescope file_browser<cr>', { noremap = true, silent = true, desc = 'Open File Browser'})
+-- vim.api.nvim_set_keymap('n', '<leader>fp', require('telescope').extensions.project.projects, { noremap = true, silent = true, desc = 'Open Project Browser'})
 
+-- require'telescope'.extensions.projects.projects{}
 -- Moving buffers --------------------------------------------------------------
 vim.keymap.set('n', '<leader>bn', ':bnext<cr>',           { silent = true, desc = 'Next'})
 vim.keymap.set('n', '<leader>bb', ':bprevious<cr>',       { silent = true, desc = 'Back'})
@@ -797,22 +908,41 @@ local on_attach = function(_, bufnr)
   -- In this case, we create a function that lets us more easily define mappings specific
   -- for LSP related items. It sets the mode, buffer and description for us each time.
   local nmap = function(keys, func, desc)
-    if desc then
-      desc = 'LSP: ' .. desc
-    end
 
     vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
   end
 
+  -- MMM Added this to change error and warning symbols ⊗⭙‼
+  -- local signs = { Error = "⭙", Warn = "⚠", Hint = "⚲", Info = "🕮"}
+  local signs2 = {
+    BoldError = "",
+    Error = "",
+    BoldWarn = "",
+    Warn = "",
+    BoldInformation = "",
+    Information = "",
+    BoldQuestion = "",
+    Question = "",
+    BoldHint = "",
+    Hint = "󰌶",
+    Debug = "",
+    Trace = "✎",
+  }
+  for type, icon in pairs(signs2) do
+    local hl = "DiagnosticSign" .. type
+    vim.fn.sign_define(hl, {text = icon, texthl = hl, numhl = hl})
+  end
+  -- MMM Added this to change error and warning symbols
 
-  nmap('<leader>ln', vim.lsp.buf.rename, '[R]e[n]ame')
-  nmap('<leader>la', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
-  nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
-  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-  nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-  nmap('<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition')
-  nmap('<leader>lds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+  nmap('<leader>ln', vim.lsp.buf.rename, 'Rename')
+  nmap('<leader>la', vim.lsp.buf.code_action, 'Code Action')
+
+  nmap('gd', vim.lsp.buf.definition, 'Goto Definition')
+  nmap('gr', require('telescope.builtin').lsp_references, 'Goto References')
+  nmap('gI', require('telescope.builtin').lsp_implementations, 'Goto Implementation')
+  nmap('<leader>lD', vim.lsp.buf.type_definition, 'Type Definition')
+  nmap('<leader>lds', require('telescope.builtin').lsp_document_symbols, 'Document Symbols')
   -- nmap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
   -- See `:help K` for why this keymap
@@ -820,7 +950,7 @@ local on_attach = function(_, bufnr)
   -- nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
-  nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+  nmap('gD', vim.lsp.buf.declaration, 'Goto Declaration')
   -- nmap('<leader>lwa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
   -- nmap('<leader>lwr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
   -- nmap('<leader>lwl', function()
