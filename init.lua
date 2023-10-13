@@ -276,6 +276,12 @@ require('lazy').setup({
 -- Comment by line or block
   { 'numToStr/Comment.nvim', opts = {} },
 
+-- ------------------------- Harpoon -------------------------------------------
+--
+  {
+    'ThePrimeagen/harpoon', opts = {},
+  },
+
 -- ------------------------- Telescope -----------------------------------------
 -- Fuzzy Finder (files, lsp, etc)
   {
@@ -696,6 +702,7 @@ require('telescope').setup {
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 require'telescope'.load_extension('project')
+require'telescope'.load_extension('harpoon')
 
 -- See `:help telescope.builtin`
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = 'Find recently opened files' })
@@ -792,6 +799,14 @@ vim.keymap.set('n', '<leader>Cb', ':CMakeBuild<cr>',             { silent = true
 vim.keymap.set('n', '<leader>Co', ':CMakeOpen<cr>',              { silent = true, desc = 'Open'})
 vim.keymap.set('n', '<leader>Ci', ':CMakeInstall<cr>',           { silent = true, desc = 'Install'})
 vim.keymap.set('n', '<leader>Cs', ':CMakeSelectBuildType<cr>',   { silent = true, desc = 'Select build'})
+
+-- Harpoon keymaps -------------------------------------------------------------
+vim.keymap.set('n', 'hx', require('harpoon.mark').add_file, { desc = "Harpoon mark"})
+vim.keymap.set('n', 'hn', require('harpoon.ui').nav_next,   { desc = "Harpoon next"})
+vim.keymap.set('n', 'hp', require('harpoon.ui').nav_prev,   { desc = "Harpoon prev"})
+vim.keymap.set('n', 'hd', require('harpoon.mark').rm_file,  { desc = "Harpoon remove"})
+vim.keymap.set('n', 'hm', ':Telescope harpoon marks<CR>',   { silent = true, desc = "Harpoon marks"})
+
 
 -- Helpful keymaps -------------------------------------------------------------
 vim.keymap.set('n', '<leader>sc', require('telescope.builtin').colorscheme, { silent = true, desc = '[S]earch [C]olor'})
